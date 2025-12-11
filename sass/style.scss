@@ -150,10 +150,11 @@ section.posts{
 .tag-size-4{ font-size: 1.5rem; }
 .tag-size-5{ font-size: 1.8rem; }
 
-ul[class="list tags"]{
+.list.tags,
+.list.authors{
   li{
     display: inline-block;
-    margin: 0 2px;
+    margin: 0 3px;
     span{
       display: none;
     }
