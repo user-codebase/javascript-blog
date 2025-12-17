@@ -1,5 +1,13 @@
 'use strict';
 
+const templates = {
+  articleLink: Handlebars.compile(document.querySelector('#template-article-link').innerHTML),
+  tagLink: Handlebars.compile(document.querySelector('#template-tag-link').innerHTML),
+  authorLink: Handlebars.compile(document.querySelector('#template-author-link').innerHTML),
+  tagCloudLink: Handlebars.compile(document.querySelector('#template-tag-cloud-link').innerHTML),
+  authorCloudLink: Handlebars.compile(document.querySelector('#template-author-cloud-link').innerHTML)
+};
+
 const opts = {
   ArticleSelector: '.post',
   TitleSelector: '.post-title',
@@ -64,7 +72,8 @@ function generateTitleLinks(customSelector = ''){
     const articleTitle = article.querySelector(opts.TitleSelector).innerHTML;
 
     /* create HTML of the link */
-    const linkHTML = '<li><a href="#' + articleId + '"><span>' + articleTitle + '</span></a></li>';
+    const linkHTMLData = {id: articleId, title: articleTitle};
+    const linkHTML = templates.articleLink(linkHTMLData);
 
     /* insert link into html variable */
     html = html + linkHTML;
@@ -129,10 +138,12 @@ function generateTags(){
     /* START LOOP: for each tag */
     for (const tag of arrayWithTags){
       /* generate HTML of the link */
-      const htmlLinkForTag = '<li><a href="#tag-' + tag + '">' + tag + '</a></li>';
+      const linkHTMLData = {id: tag, title: tag};
+      const linkHTML = templates.tagLink(linkHTMLData);
+      console.log(linkHTML);
 
       /* add generated code to html variable */
-      html += htmlLinkForTag;
+      html += linkHTML;
 
       /* [NEW] check if this link is NOT already in allTags */
       if(!allTags[tag]) {
@@ -156,20 +167,28 @@ function generateTags(){
   const tagsParams = calculateTagsParams(allTags);
 
   /* [NEW] create variable for all links HTML code */
-  let allTagsHTML = '';
+  const allTagsData = {tags: []};
 
   /* [NEW] START LOOP: for each tag in allTags: */
   for(let tag in allTags){
   /* [NEW] generate code of a link and add it to allTagsHTML */
 
-    const calculatedClassNumber = calculateTagClass(allTags[tag], tagsParams);
-    allTagsHTML += '<li><a href="#tag-' + tag + '" class="' + opts.CloudClassPrefix + calculatedClassNumber + '">' + tag + '</a><span> (' + allTags[tag] + ') </span></li>';
+    allTagsData.tags.push({
+      id: tag,
+      tag: tag,
+      count: allTags[tag],
+      className: opts.CloudClassPrefix + calculateTagClass(allTags[tag], tagsParams)
+    });
+
+
+    console.log(allTagsData);
 
   }
   /* [NEW] END LOOP: for each tag in allTags: */
 
   /*[NEW] add HTML from allTagsHTML to tagList */
-  tagList.innerHTML = allTagsHTML;
+  tagList.innerHTML = templates.tagCloudLink(allTagsData);
+
 }
 
 
@@ -248,9 +267,13 @@ function generateAuthors(){
 
     const dataAuthor = article.getAttribute('data-author');
     
-    const htmlForAuthor = '<p class="post-author">by <a href="#author-' + dataAuthor + '">' + dataAuthor + '</a></p>';
+    const authorId = dataAuthor;
+    const linkHTMLData = {id: authorId, title: dataAuthor};
+    const linkHTML = templates.authorLink(linkHTMLData);
 
-    authorWrapper.insertAdjacentHTML('afterend', htmlForAuthor);
+
+
+    authorWrapper.insertAdjacentHTML('afterend', linkHTML);
 
     if(!objectWithAuthorsAndNumbersOfArticles[dataAuthor]){
       objectWithAuthorsAndNumbersOfArticles[dataAuthor] = 1; 
@@ -264,14 +287,20 @@ function generateAuthors(){
   
   const objectWithMinAndMaxValueForAuthors = calculateTagsParams(objectWithAuthorsAndNumbersOfArticles);
 
-  let html = '';
+  const allAuthorsData = {authors: []};
 
   for (const author in objectWithAuthorsAndNumbersOfArticles){
-    const calculatedClass = calculateTagClass(objectWithAuthorsAndNumbersOfArticles[author], objectWithMinAndMaxValueForAuthors);
-    const htmlCodeForAuthor = '<li><a href="#author-' + author + '" class="' + opts.CloudClassPrefix + calculatedClass + '">' + author + '</a></li>';
-    html += htmlCodeForAuthor;
+
+    allAuthorsData.authors.push({
+      id: author,
+      author: author,
+      count: objectWithAuthorsAndNumbersOfArticles[author],
+      className: opts.CloudClassPrefix + calculateTagClass(objectWithAuthorsAndNumbersOfArticles[author], objectWithMinAndMaxValueForAuthors)
+    });
+
   }
-  listWithAuthorsSelector.innerHTML = html;
+  console.log(allAuthorsData);
+  listWithAuthorsSelector.innerHTML = templates.authorCloudLink(allAuthorsData);
 }
 
 generateAuthors();
